@@ -1,7 +1,12 @@
 package br.com.gerenciadortarefas.controllers;
 
+import java.util.Date;
+
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,9 +39,26 @@ public class TarefasController {
 	}
 	
 	@PostMapping("/inserir")
-	public String inserir(Tarefa tarefa) {
-		repositorioTarefa.save(tarefa);
-		return "redirect:/tarefas/listar";
+	public ModelAndView inserir(@Valid Tarefa tarefa, BindingResult result) {
+		ModelAndView mv = new ModelAndView();
+		if(tarefa.getDataExpiracao() == null) {
+			result.rejectValue("dataExpiracao", "tarefa.dataExpiracaoInvalida",
+					"A data de expiração é obrigatória");
+		} else {
+			if(tarefa.getDataExpiracao().before(new Date())) {
+				result.rejectValue("dataExpiracao","tarefa.dataExpiracaoInvalida",
+						"A data de expiração não pode ser menor que a data atual");
+			}
+		}
 		
+		if(result.hasErrors()) {
+			mv.setViewName("tarefas/inserir");
+			mv.addObject(tarefa);	
+		} else {
+			mv.setViewName("redirect:/tarefas/listar");
+			repositorioTarefa.save(tarefa);
+		}
+		
+		return mv;
 	}
 }
