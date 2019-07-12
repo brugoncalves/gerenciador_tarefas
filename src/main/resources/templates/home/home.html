@@ -8,17 +8,7 @@
 </head>
 <body>
 
-	<nav class="navbar navbar-expand-lg navbar-light bg-light">
-		<a class="navbar-brand" href="#">Gerenciador de Tarefas</a>
-		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-app">
-			<span class="navbar-toggler-icon"></span>
-		</button>
-		<div class="collapse navbar-collapse" id="navbar-app"> 
-			<div class="navbar-nav">
-				<a class="nav-item nav-link" href="/">Home</a>
-			</div>
-		</div>
-	</nav>
+	<div th:replace="fragmentos/fragmentos :: cabecalho"></div>
 	<div class="container">
 		<p>Olá, seja bem vindo ao gerenciador de tarefas!</p>
 		<p th:text="${mensagem}"></p>
@@ -27,7 +17,7 @@
 	
 	
 	
-<script src="webjars/jquery/3.4.1/jquery.min.js"></script>
-<script src="webjars/bootstrap/css/js/bootstrap.min.js"></script>	
+	<script src="webjars/jquery/3.4.1/jquery.min.js"></script>
+	<script src="webjars/bootstrap/css/js/bootstrap.min.js"></script>	
 </body>
 </html>
