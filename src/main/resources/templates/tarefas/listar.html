@@ -21,7 +21,9 @@
 			</div>
 			<div class="card-footer bg-light">
 				<p>
-					<a th:href="@{/tarefas/alterar/{id}(id=${tarefa.id})}">Alterar</a>
+					<a th:href="@{/tarefas/alterar/{id}(id=${tarefa.id})}">Alterar |</a>
+					<a th:href="@{/tarefas/excluir/{id}(id=${tarefa.id})}">Excluir </a>
+					<a th:if="${!tarefa.concluida}" th:href="@{/tarefas/concluir/{id}(id=${tarefa.id})}">| Concluir</a>
 				</p>
 			</div>
 		</div>	
