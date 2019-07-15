@@ -2,6 +2,7 @@ package br.com.gerenciadortarefas.controllers;
 
 import java.util.Date;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,92 +15,99 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import br.com.gerenciadortarefas.models.Tarefa;
+import br.com.gerenciadortarefas.models.Usuario;
 import br.com.gerenciadortarefas.repositories.RepositorioTarefa;
+import br.com.gerenciadortarefas.services.ServicoUsuario;
 
 @Controller
 @RequestMapping("/tarefas")
 public class TarefasController {
-	
+
 	@Autowired
 	private RepositorioTarefa repositorioTarefa;
 
+	@Autowired
+	private ServicoUsuario servicoUsuario;
+
 	@GetMapping("/listar")
-	public ModelAndView listar() {
+	public ModelAndView listar(HttpServletRequest request) {
 		ModelAndView mv = new ModelAndView();
 		mv.setViewName("tarefas/listar");
-		mv.addObject("tarefas", repositorioTarefa.findAll());
-		return mv;	
+		String emailUsuario = request.getUserPrincipal().getName();
+		mv.addObject("tarefas", repositorioTarefa.carregarTarefasPorUsuario(emailUsuario));
+		return mv;
 	}
-	
+
 	@GetMapping("/inserir")
 	public ModelAndView inserir() {
 		ModelAndView mv = new ModelAndView();
 		mv.setViewName("tarefas/inserir");
 		mv.addObject("tarefa", new Tarefa());
-		return mv;	
+		return mv;
 	}
-	
+
 	@PostMapping("/inserir")
-	public ModelAndView inserir(@Valid Tarefa tarefa, BindingResult result) {
+	public ModelAndView inserir(@Valid Tarefa tarefa, BindingResult result, HttpServletRequest request) {
 		ModelAndView mv = new ModelAndView();
-		if(tarefa.getDataExpiracao() == null) {
-			result.rejectValue("dataExpiracao", "tarefa.dataExpiracaoInvalida",
-					"A data de expiração é obrigatória");
+		if (tarefa.getDataExpiracao() == null) {
+			result.rejectValue("dataExpiracao", "tarefa.dataExpiracaoInvalida", "A data de expiração é obrigatória");
 		} else {
-			if(tarefa.getDataExpiracao().before(new Date())) {
-				result.rejectValue("dataExpiracao","tarefa.dataExpiracaoInvalida",
+			if (tarefa.getDataExpiracao().before(new Date())) {
+				result.rejectValue("dataExpiracao", "tarefa.dataExpiracaoInvalida",
 						"A data de expiração não pode ser menor que a data atual");
 			}
 		}
-		
-		if(result.hasErrors()) {
+
+		if (result.hasErrors()) {
 			mv.setViewName("tarefas/inserir");
-			mv.addObject(tarefa);	
+			mv.addObject(tarefa);
 		} else {
-			mv.setViewName("redirect:/tarefas/listar");
+			String emailUsuario = request.getUserPrincipal().getName();
+			Usuario usuarioLogado = servicoUsuario.encontrarPorEmail(emailUsuario);
+			tarefa.setUsuario(usuarioLogado);
 			repositorioTarefa.save(tarefa);
+			mv.setViewName("redirect:/tarefas/listar");
 		}
 		return mv;
 	}
-	
+
 	@GetMapping("/alterar/{id}")
 	public ModelAndView alterar(@PathVariable("id") Long id) {
 		ModelAndView mv = new ModelAndView();
 		Tarefa tarefa = repositorioTarefa.getOne(id);
 		mv.addObject("tarefa", tarefa);
 		mv.setViewName("tarefas/alterar");
-		return mv;	
+		return mv;
 	}
-	
+
 	@PostMapping("/alterar")
 	public ModelAndView alterar(@Valid Tarefa tarefa, BindingResult result) {
 		ModelAndView mv = new ModelAndView();
-		if(tarefa.getDataExpiracao() == null) {
-			result.rejectValue("dataExpiracao", "tarefa.dataExpiracaoInvalida",
-					"A data de expiração é obrigatória");
+		if (tarefa.getDataExpiracao() == null) {
+			result.rejectValue("dataExpiracao", "tarefa.dataExpiracaoInvalida", "A data de expiração é obrigatória");
 		} else {
-			if(tarefa.getDataExpiracao().before(new Date())) {
-				result.rejectValue("dataExpiracao","tarefa.dataExpiracaoInvalida",
+			if (tarefa.getDataExpiracao().before(new Date())) {
+				result.rejectValue("dataExpiracao", "tarefa.dataExpiracaoInvalida",
 						"A data de expiração não pode ser menor que a data atual");
 			}
 		}
-		
-		if(result.hasErrors()) {
+
+		if (result.hasErrors()) {
 			mv.setViewName("tarefas/alterar");
-			mv.addObject(tarefa);	
+			mv.addObject(tarefa);
 		} else {
 			mv.setViewName("redirect:/tarefas/listar");
 			repositorioTarefa.save(tarefa);
 		}
 		return mv;
 	}
-	
+
 	@GetMapping("/excluir/{id}")
 	public String excluir(@PathVariable("id") Long id) {
 		repositorioTarefa.deleteById(id);
 		return "redirect:/tarefas/listar";
 	}
-	
+
 	@GetMapping("/concluir/{id}")
 	public String concluida(@PathVariable("id") Long id) {
 		Tarefa tarefa = repositorioTarefa.getOne(id);
